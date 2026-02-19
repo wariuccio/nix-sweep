@@ -68,6 +68,10 @@ impl FmtWithEllipsis {
         self
     }
 
+    pub fn left_pad(&self) -> String {
+        format!("{:>width$}", self.to_string(), width = self.1)
+    }
+
     pub fn right_pad(&self) -> String {
         format!("{:<width$}", self.to_string(), width = self.1)
     }

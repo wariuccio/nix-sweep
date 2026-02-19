@@ -1,6 +1,7 @@
 pub mod add_root;
 pub mod analyze;
 pub mod cleanout;
+pub mod compare;
 pub mod completions;
 pub mod gc;
 pub mod gc_roots;

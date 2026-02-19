@@ -56,6 +56,9 @@ enum Subcommand {
     /// the impact it may have on your system state..
     Cleanout(commands::cleanout::CleanoutCommand),
 
+    /// Compare the closures of two store paths
+    Compare(commands::compare::CompareCommand),
+
     /// Run garbage collection (short for `nix-store --gc`)
     GC(commands::gc::GCCommand),
 
@@ -127,14 +130,15 @@ fn main() {
         AddRoot(cmd) => cmd.run(),
         Analyze(cmd) => cmd.run(),
         Cleanout(cmd) => cmd.run(),
+        Compare(cmd) => cmd.run(),
         Completions(cmd) => cmd.run(),
         GC(cmd) => cmd.run(),
         GCRoots(cmd) => cmd.run(),
         Generations(cmd) => cmd.run(),
         Man(cmd) => cmd.run(),
         PathInfo(cmd) => cmd.run(),
-        TidyupGCRoots(cmd) => cmd.run(),
         Presets(cmd) => cmd.run(),
+        TidyupGCRoots(cmd) => cmd.run(),
     };
     resolve(res);
 }
