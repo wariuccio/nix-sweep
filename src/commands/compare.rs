@@ -368,7 +368,7 @@ fn print_summary(command: &CompareCommand, baseline_size: u64, current_size: u64
     };
     let fmt_baseline_paths = FmtWithEllipsis::fitting_terminal(baseline_nitems.to_string(), max_npaths_len, 0);
     let fmt_current_paths = FmtWithEllipsis::fitting_terminal(current_nitems.to_string(), max_npaths_len, 0);
-    let fmt_diff_paths = if paths_diff < 0 {
+    let fmt_diff_paths = if paths_diff <= 0 {
         format!("-{}", paths_diff.unsigned_abs())
             .green()
     } else {
