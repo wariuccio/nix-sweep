@@ -354,7 +354,12 @@ fn print_summary(command: &CompareCommand, baseline_size: u64, current_size: u64
         .left_pad()
         .to_string()
         .yellow();
-    let fmt_diff_size = if size_diff < 0 {
+    let fmt_diff_size = if size_diff == 0 {
+        FmtSize::new(size_diff.unsigned_abs())
+            .left_pad()
+            .to_string()
+            .into()
+    } else if size_diff < 0 {
         FmtSize::new(size_diff.unsigned_abs())
             .with_prefix::<1>("-".to_string())
             .left_pad()
@@ -369,7 +374,10 @@ fn print_summary(command: &CompareCommand, baseline_size: u64, current_size: u64
     };
     let fmt_baseline_paths = FmtWithEllipsis::fitting_terminal(baseline_nitems.to_string(), max_npaths_len, 0);
     let fmt_current_paths = FmtWithEllipsis::fitting_terminal(current_nitems.to_string(), max_npaths_len, 0);
-    let fmt_diff_paths = if paths_diff <= 0 {
+    let fmt_diff_paths = if paths_diff == 0 {
+        format!("{}", paths_diff.unsigned_abs())
+            .into()
+    } else if paths_diff < 0 {
         format!("-{}", paths_diff.unsigned_abs())
             .green()
     } else {
