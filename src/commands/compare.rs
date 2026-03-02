@@ -116,7 +116,7 @@ impl super::Command for CompareCommand {
         let added = Mutex::new(Vec::new());
         let removed = Mutex::new(Vec::new());
 
-        // Find candidates for changed and added paths
+        // Find candidates for changed and added packages
         current_items.par_iter()
             .filter(|ci| !baseline_items.iter().any(|bi| *ci == bi))
             .for_each(|ci| {
@@ -140,7 +140,7 @@ impl super::Command for CompareCommand {
                 }
             });
 
-        // Find candidates for removed paths
+        // Find candidates for removed packages
         baseline_items.par_iter()
             .for_each(|bi| if !current_items.iter().any(|ci| bi.name == ci.name) {
                 removed.lock().unwrap().push(bi.clone());
@@ -159,23 +159,24 @@ impl super::Command for CompareCommand {
             && current_items.par_iter().all(|ci| bi != ci));
 
         // Sort lists
-        version_changed.par_sort_by(|a, b| a.0.name.partial_cmp(&b.0.name)
-            .or_else(|| a.0.version.partial_cmp(&b.0.version))
-            .unwrap_or_else(|| a.1.version.cmp(&b.1.version)));
-        hash_changed.par_sort_by(|a, b| a.0.name.partial_cmp(&b.0.name)
-            .or_else(|| a.0.version.partial_cmp(&b.0.version))
-            .unwrap_or_else(|| a.1.version.cmp(&b.1.version)));
-        added.par_sort_by(|a, b| a.name.partial_cmp(&b.name)
-            .unwrap_or_else(|| a.version.cmp(&b.version)));
-        removed.par_sort_by(|a, b| a.name.partial_cmp(&b.name)
-            .unwrap_or_else(|| a.version.cmp(&b.version)));
+        version_changed.par_sort_by(|a, b| a.1.version.cmp(&b.1.version));
+        version_changed.par_sort_by(|a, b| a.0.version.cmp(&b.0.version));
+        version_changed.par_sort_by(|a, b| a.0.name.cmp(&b.0.name));
+        hash_changed.par_sort_by(|a, b| a.1.version.cmp(&b.1.version));
+        hash_changed.par_sort_by(|a, b| a.0.version.cmp(&b.0.version));
+        hash_changed.par_sort_by(|a, b| a.0.name.cmp(&b.0.name));
+        added.par_sort_by(|a, b| a.version.cmp(&b.version));
+        added.par_sort_by(|a, b| a.name.cmp(&b.name));
+        removed.par_sort_by(|a, b| a.version.cmp(&b.version));
+        removed.par_sort_by(|a, b| a.name.cmp(&b.name));
 
         // Remove items only differing by hash in simplified mode
         if self.concise {
-            version_changed.dedup_by(|a, b| a.0.name == b.0.name);
-            hash_changed.dedup_by(|a, b| a.0.name == b.0.name);
-            added.dedup_by(|a, b| a.name == b.name);
-            removed.dedup_by(|a, b| a.name == b.name);
+            let either_is_prefix  = |a: &str, b: &str| a.starts_with(b) || b.starts_with(a);
+            version_changed.dedup_by(|a, b| a.0.name == b.0.name && either_is_prefix(&a.0.name, &b.0.name));
+            hash_changed.dedup_by(|a, b| a.0.name == b.0.name && either_is_prefix(&a.0.name, &b.0.name));
+            added.dedup_by(|a, b| a.name == b.name && either_is_prefix(&a.name, &b.name));
+            removed.dedup_by(|a, b| a.name == b.name && either_is_prefix(&a.name, &b.name));
         }
 
         if !self.no_added && !added.is_empty() {
@@ -211,7 +212,7 @@ fn version_len_both((p, q): &(PathItem, PathItem)) -> usize {
 }
 
 fn print_added(added: &[PathItem], concise: bool) {
-    interaction::announce(&format!("{} paths added:", added.len()));
+    interaction::announce(&format!("{} packages added:", added.len()));
     let max_name_len = added.iter().map(|p| p.name.len()).max().unwrap_or_default();
     let max_version_len = added.iter().map(version_len).max().unwrap_or_default();
     for ci in added {
@@ -235,7 +236,7 @@ fn print_added(added: &[PathItem], concise: bool) {
 }
 
 fn print_removed(removed: &[PathItem], concise: bool) {
-    interaction::announce(&format!("{} paths removed:", removed.len()));
+    interaction::announce(&format!("{} packages removed:", removed.len()));
     let max_name_len = removed.iter().map(|p| p.name.len()).max().unwrap_or_default();
     let max_version_len = removed.iter().map(version_len).max().unwrap_or_default();
     for bi in removed {
@@ -259,7 +260,7 @@ fn print_removed(removed: &[PathItem], concise: bool) {
 }
 
 fn print_updated(version_changed: &[(PathItem, PathItem)], concise: bool) {
-    interaction::announce(&format!("{} paths updated:", version_changed.len()));
+    interaction::announce(&format!("{} packages updated:", version_changed.len()));
     let max_name_len = version_changed.iter().map(|(p, _)| p.name.len()).max().unwrap_or_default();
     let max_version_len = version_changed.iter().map(version_len_both).max().unwrap_or_default();
     for (bi, ci) in version_changed {
@@ -292,7 +293,7 @@ fn print_updated(version_changed: &[(PathItem, PathItem)], concise: bool) {
 }
 
 fn print_changed(hash_changed: &[(PathItem, PathItem)], concise: bool) {
-    interaction::announce(&format!("{} paths changed:", hash_changed.len()));
+    interaction::announce(&format!("{} packages changed:", hash_changed.len()));
     let max_name_len = hash_changed.iter().map(|(p, _)| p.name.len()).max().unwrap_or_default();
     let max_version_len = hash_changed.iter().map(version_len_both).max().unwrap_or_default() + 2;
     for (bi, ci) in hash_changed {
