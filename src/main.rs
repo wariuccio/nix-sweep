@@ -56,6 +56,9 @@ enum Subcommand {
     /// the impact it may have on your system state..
     Cleanout(commands::cleanout::CleanoutCommand),
 
+    /// Show composition of a closure
+    Closure(commands::closure::ClosureCommand),
+
     /// Compare the closures of two store paths
     Compare(commands::compare::CompareCommand),
 
@@ -130,6 +133,7 @@ fn main() {
         AddRoot(cmd) => cmd.run(),
         Analyze(cmd) => cmd.run(),
         Cleanout(cmd) => cmd.run(),
+        Closure(cmd) => cmd.run(),
         Compare(cmd) => cmd.run(),
         Completions(cmd) => cmd.run(),
         GC(cmd) => cmd.run(),

@@ -22,8 +22,6 @@ pub fn dir_size_naive(path: &PathBuf) -> u64 {
     };
     let ft = metadata.file_type();
 
-
-
     if ft.is_dir() {
         let read_dir = match fs::read_dir(path) {
             Ok(rd) => rd,

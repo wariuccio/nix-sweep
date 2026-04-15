@@ -129,7 +129,7 @@ impl StorePath {
         }
     }
 
-    pub fn from_symlink(link: &PathBuf) -> Result<Self, String> {
+    pub fn from_symlink(link: &PathBuf) -> Result<Self, String> {  // TODO change to &Path
         let path = fs::canonicalize(link)
             .map_err(|e| e.to_string())?;
         Self::new(path)
@@ -137,6 +137,24 @@ impl StorePath {
 
     pub fn path(&self) -> &PathBuf {
         &self.0
+    }
+
+    pub fn hash(&self) -> String {
+        self.0.to_string_lossy()
+            .strip_prefix("/nix/store/")
+            .map(|s| s.to_string())
+            .unwrap_or(self.0.to_string_lossy().to_string())
+            .chars()
+            .take_while(|c| *c != '-')
+            .collect()
+    }
+
+    pub fn name(&self) -> String {
+        self.0.to_string_lossy()
+            .chars()
+            .skip_while(|c| *c != '-')
+            .skip(1)
+            .collect()
     }
 
     pub fn size(&self) -> u64 {
